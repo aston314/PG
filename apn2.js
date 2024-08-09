@@ -4,6 +4,7 @@ const EZTV_API_BASE = "https://eztvx.to";
 const YTS_API_BASE = "https://yts.mx/api/v2";
 const TB_API_BASE = "https://thepiratebay10.info/search";
 const X_API_BASE = "https://1337x.to/sort-category-search";
+const X_API_BASE_DETAIL = "https://1337x.to/torrent";
 
 function joinUrl(base: string, path: string): string {
   return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
@@ -53,6 +54,8 @@ async function handleRequest(request: Request): Promise<Response> {
       proxyUrl = joinUrl(TB_API_BASE, path.slice(8)) + url.search;
     } else if (path.startsWith("/sort-category-search/")) {
       proxyUrl = joinUrl(X_API_BASE, path.slice(22)) + url.search;
+    } else if (path.startsWith("/torrent/")) {
+      proxyUrl = joinUrl(X_API_BASE_DETAIL, path.slice(9)) + url.search;
     } else {
       // console.log(`没有匹配的路由: ${path}`);
       return new Response("Not Found", { status: 404 });
