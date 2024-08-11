@@ -5,7 +5,7 @@ const version = "1.5.0";
 
 const CONFIG = {
   port: parseInt(Deno.env.get("PORT") || "8000"),
-  logLevel: Deno.env.get("LOG_LEVEL") || 'info',
+  logLevel: Deno.env.get("LOG_LEVEL") || 'error',
   maxRetries: 3,
   retryDelay: 1000, // ms
 };
