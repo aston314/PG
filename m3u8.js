@@ -103,7 +103,7 @@ async function handleRequest(request: Request): Promise<Response> {
       let body: Uint8Array | string = modifiedM3u8;
       let responseHeaders = new Headers({
         "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/vnd.apple.mpegurl",
+        "Content-Type": contentType || "application/vnd.apple.mpegurl",
         "Cache-Control": "no-cache, no-store, must-revalidate",
       });
 
