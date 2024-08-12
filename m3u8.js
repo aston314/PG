@@ -126,7 +126,7 @@ async function handleRequest(request: Request): Promise<Response> {
         statusText: response.statusText,
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Content-Type": contentType || "application/octet-stream",
+          "Content-Type": contentType,
         },
       });
     }
