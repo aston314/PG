@@ -98,7 +98,8 @@ async function fetchJson(url) {
 
 function validateParams(params) {
   const { tmdbId, season, episode, isMovie } = params;
-  if (!tmdbId || !tmdbId.startsWith('tt') || tmdbId.length < 3) {
+  //|| !tmdbId.startsWith('tt') 
+  if (!tmdbId || tmdbId.length < 3) {
     throw new Error('Invalid TMDB ID. Must start with "tt" followed by numbers.');
   }
   if (!isMovie) {
