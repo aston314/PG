@@ -98,7 +98,8 @@ async function fetchJson(url) {
 
 function validateParams(params) {
   const { tmdbId, season, episode, isMovie } = params;
-  if (!tmdbId || !tmdbId.startsWith('tt') || tmdbId.length < 3) {
+  //|| !tmdbId.startsWith('tt')
+  if (!tmdbId  || tmdbId.length < 3) {
     throw new Error('Invalid TMDB ID. Must start with "tt" followed by numbers.');
   }
   if (!isMovie) {
@@ -148,7 +149,7 @@ async function episode(data_id_1, data_id_2, type, s, e) {
     try {
       const sourceData = await fetchJson(url);
       //success === true
-      if (sourceData.data.hasOwnProperty('source')) {
+      if (sourceData.success === true && sourceData.data.hasOwnProperty('source')) {
         return {
           name: resp.data.find(server => url.includes(server.hash)).name,
           ...sourceData
