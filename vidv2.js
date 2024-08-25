@@ -1102,8 +1102,8 @@ async function handleRequest(request) {
   if (!subtitleUrl) {
     return createResponse({ error: "Missing subtitle URL" }, Status.BadRequest);
   }
-  //handleSubtitleDownload
-  return handleSubtitleDisplay(subtitleUrl, language);
+  //handleSubtitleDownload handleSubtitleDisplay
+  return handleSubtitleDownload(subtitleUrl, language);
 }
 
   if (path.startsWith("/vidsrc/")) {
