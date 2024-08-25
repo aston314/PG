@@ -255,18 +255,128 @@ async function fetchWithConcurrencyLimit(urls, fetchFunction, concurrency = conf
   return results;
 }
 
+// async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOUT, currentDomain) {
+//   const cacheKey = `${code}_${languages.map(l => l.lang).join('_')}`;
+//   const cachedResult = subtitleCache.get(cacheKey);
+//   if (cachedResult) return cachedResult;
+
+//   const fetchSubtitle = async (languageObj) => {
+//     let imdbId;
+//     let type;
+//     let season, episode, seasonEpisode;
+
+//     if (code.includes("_")) {
+//       // [imdbId, season, episode] = code.split("_");
+//       [imdbId, seasonEpisode] = code.split("_");
+//       [season, episode] = seasonEpisode.split('x');
+//       type = 'tv';
+//     } else {
+//       imdbId = code;
+//       type = 'movie';
+//     }
+
+//     // 检查是否已经是 IMDb ID
+//     if (!imdbId.startsWith('tt')) {
+//       // 如果不是 IMDb ID，则进行转换
+//       const convertedId = await convertTMDbToIMDb(imdbId, type);
+//       if (!convertedId) {
+//         console.error(`Failed to convert ID ${imdbId} to IMDb ID`);
+//         return null;
+//       }
+//       imdbId = convertedId;
+//     }
+
+//     // 移除 'tt' 前缀
+//     const cleanImdbId = imdbId.replace(/^tt/, '');
+
+//     let url;
+//     if (type === 'tv') {
+//       url = `https://rest.opensubtitles.org/search/episode-${episode}/imdbid-${cleanImdbId}/season-${season}/sublanguageid-${languageObj.lang}`;
+//     } else {
+//       url = `https://rest.opensubtitles.org/search/imdbid-${cleanImdbId}/sublanguageid-${languageObj.lang}`;
+//     }
+
+//     try {
+//       const response = await fetch(url, {
+//         headers: {
+//           'User-Agent': config.OPENSUBTITLES_USER_AGENT,
+//           'X-User-Agent': config.OPENSUBTITLES_XUSER_AGENT,
+//           'authority': config.OPENSUBTITLES_AUTHORITY
+//         }
+//       });
+      
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`);
+//       }
+      
+//       const data = await response.json();
+      
+//       if (data.length > 0) {
+//         // const bestSubtitle = data.reduce((prev, current) => (prev.SubDownloadsCnt > current.SubDownloadsCnt) ? prev : current);
+//         // // console.log(url, data.length, bestSubtitle.SubDownloadLink,bestSubtitle.IDSubtitleFile)
+//         // return {
+//         //   label: languageObj.localname + ' [搜自字幕网]',
+//         //   file: `${config.SUB_BASE_URL}${bestSubtitle.SubDownloadLink}&lang=${languageObj.lang}`
+//         // };
+//         let subtitles;
+//         if (languageObj.lang === 'chi') {
+//           // For Chinese, take up to 3 subtitles
+//           subtitles = data.slice(0, 3).map((sub, index) => ({
+//             label: `${languageObj.localname}${index + 1} - 搜自字幕网`,
+//             file: `${currentDomain}${sub.SubDownloadLink}&lang=${languageObj.lang}`
+//           }));
+//         } else {
+//           // For other languages, take the best subtitle
+//           const bestSubtitle = data.reduce((prev, current) => (prev.SubDownloadsCnt > current.SubDownloadsCnt) ? prev : current);
+//           subtitles = [{
+//             label: `${languageObj.localname} - 搜自字幕网`,
+//             // config.SUB_BASE_URL
+//             file: `${currentDomain}${bestSubtitle.SubDownloadLink}&lang=${languageObj.lang}`
+//           }];
+//         }
+//         console.log(`Found ${subtitles.length} subtitle option(s) for ${imdbId} in ${languageObj.lang}`);
+//         return subtitles;
+//       } else {
+//         console.log(`No subtitles found for ${imdbId} in language ${languageObj.lang}`);
+//         return null;
+//       }
+//     } catch (error) {
+//       console.error(`Error fetching subtitle for ${imdbId} in ${languageObj.lang}: ${error.message}`);
+//       return null;
+//     }
+//   };
+
+//   const controller = new AbortController();
+//   const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+//   try {
+//     const subtitlePromises = languages.map(lang => fetchSubtitle(lang));
+//     const subtitles = await Promise.all(subtitlePromises.map(p => p.catch(e => null)));
+//     const validSubtitles = subtitles.filter(subtitle => subtitle !== null);
+
+//     subtitleCache.set(cacheKey, validSubtitles, config.CACHE_DURATION);
+//     return validSubtitles;
+//   } catch (error) {
+//     if (error.name === 'AbortError') {
+//       console.error('Subtitle search timed out');
+//     }
+//     throw error;
+//   } finally {
+//     clearTimeout(timeoutId);
+//   }
+// }
+
 async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOUT, currentDomain) {
   const cacheKey = `${code}_${languages.map(l => l.lang).join('_')}`;
   const cachedResult = subtitleCache.get(cacheKey);
   if (cachedResult) return cachedResult;
 
-  const fetchSubtitle = async (languageObj) => {
+  const fetchOpenSubtitles = async (languageObj) => {
     let imdbId;
     let type;
     let season, episode, seasonEpisode;
 
     if (code.includes("_")) {
-      // [imdbId, season, episode] = code.split("_");
       [imdbId, seasonEpisode] = code.split("_");
       [season, episode] = seasonEpisode.split('x');
       type = 'tv';
@@ -312,12 +422,6 @@ async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOU
       const data = await response.json();
       
       if (data.length > 0) {
-        // const bestSubtitle = data.reduce((prev, current) => (prev.SubDownloadsCnt > current.SubDownloadsCnt) ? prev : current);
-        // // console.log(url, data.length, bestSubtitle.SubDownloadLink,bestSubtitle.IDSubtitleFile)
-        // return {
-        //   label: languageObj.localname + ' [搜自字幕网]',
-        //   file: `${config.SUB_BASE_URL}${bestSubtitle.SubDownloadLink}&lang=${languageObj.lang}`
-        // };
         let subtitles;
         if (languageObj.lang === 'chi') {
           // For Chinese, take up to 3 subtitles
@@ -330,7 +434,6 @@ async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOU
           const bestSubtitle = data.reduce((prev, current) => (prev.SubDownloadsCnt > current.SubDownloadsCnt) ? prev : current);
           subtitles = [{
             label: `${languageObj.localname} - 搜自字幕网`,
-            // config.SUB_BASE_URL
             file: `${currentDomain}${bestSubtitle.SubDownloadLink}&lang=${languageObj.lang}`
           }];
         }
@@ -346,13 +449,70 @@ async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOU
     }
   };
 
+  const fetchVidsrcSubtitles = async (languageObj) => {
+    
+    let imdbId, type, season, episode, seasonEpisode;
+    if (code.includes("_")) {
+      [imdbId, seasonEpisode] = code.split("_");
+      [season, episode] = seasonEpisode.split('x');
+      type = 'tv';
+    } else {
+      imdbId = code;
+      type = 'movie';
+    }
+    // console.log('参数',code)
+    // // 检查是否已经是 IMDb ID
+    // if (!imdbId.startsWith('tt')) {
+    //   // 如果不是 IMDb ID，则进行转换
+    //   const convertedId = await convertTMDbToIMDb(imdbId, type);
+    //   if (!convertedId) {
+    //     console.error(`Failed to convert ID ${imdbId} to IMDb ID`);
+    //     return null;
+    //   }
+    //   imdbId = convertedId;
+    // }
+
+    // // 移除 'tt' 前缀
+    // const cleanImdbId = imdbId.replace(/^tt/, '');
+    // console.log(code)
+
+    let vidsrcUrl;
+    if (type === 'tv') {
+      vidsrcUrl = `https://vidsrc.pro/api/get-subs/t:${imdbId}:${season}:${episode}/${languageObj.lang}?_=2.7.19`;
+    } else {
+      vidsrcUrl = `https://vidsrc.pro/api/get-subs/m:${code}:1:1/${languageObj.lang}?_=2.7.19`;
+    }
+
+    console.log(vidsrcUrl)
+
+    try {
+      const response = await fetch(vidsrcUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log(data)
+      
+      return data.map((subPath, index) => ({
+        label: `${languageObj.localname}${index + 1} - Vidsrc`,
+        file: `${currentDomain}https://vidsrc.pro${subPath}`
+      }));
+    } catch (error) {
+      console.error(`Error fetching Vidsrc subtitle for ${imdbId} in ${languageObj.lang}: ${error.message}`);
+      return null;
+    }
+  };
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const subtitlePromises = languages.map(lang => fetchSubtitle(lang));
+    const subtitlePromises = languages.flatMap(lang => [
+      fetchOpenSubtitles(lang),
+      fetchVidsrcSubtitles(lang)
+    ]);
     const subtitles = await Promise.all(subtitlePromises.map(p => p.catch(e => null)));
-    const validSubtitles = subtitles.filter(subtitle => subtitle !== null);
+    const validSubtitles = subtitles.filter(subtitle => subtitle !== null).flat();
 
     subtitleCache.set(cacheKey, validSubtitles, config.CACHE_DURATION);
     return validSubtitles;
