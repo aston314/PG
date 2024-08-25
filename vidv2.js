@@ -767,6 +767,140 @@ function calculateChineseRatio(text) {
   return chineseCount / characters.length;
 }
 
+async function handleSubtitleDisplay(url, language) {
+  if (['chi', 'zht', 'zhe'].includes(language)) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      let uint8Array = new Uint8Array(arrayBuffer);
+
+      // Attempt to gunzip the content
+      try {
+        uint8Array = await gunzip(uint8Array);
+      } catch (gzipError) {
+        console.warn("Content is not gzipped, using raw content");
+      }
+
+      // Try different encodings
+      const encodings = [
+        'utf-8', 'gb18030', 'big5', 'gbk', 'gb2312', 'hz-gb-2312', 'euc-cn',
+        'iso-2022-cn', 'shift-jis', 'euc-jp', 'iso-2022-jp'
+      ];
+      let subtitleContent = null;
+      let detectedEncoding = null;
+      let bestChineseRatio = 0;
+
+      for (const encoding of encodings) {
+        try {
+          const decoder = new TextDecoder(encoding, { fatal: true });
+          const decodedContent = decoder.decode(uint8Array);
+          
+          const chineseRatio = calculateChineseRatio(decodedContent);
+          if (chineseRatio > bestChineseRatio) {
+            subtitleContent = decodedContent;
+            detectedEncoding = encoding;
+            bestChineseRatio = chineseRatio;
+          }
+
+          // If we find a very good match, we can stop searching
+          if (chineseRatio > 0.3) {
+            break;
+          }
+        } catch (decodeError) {
+          console.warn(`Failed to decode with ${encoding}:`, decodeError);
+        }
+      }
+
+      if (config.ENABLE_SUBTITLE_AD_REMOVAL) {
+        subtitleContent = removeAdsFromSubtitle(subtitleContent);
+      }
+
+      if (!subtitleContent) {
+        throw new Error("Failed to decode subtitle content with any known encoding");
+      }
+
+      console.log(`Detected encoding: ${detectedEncoding}, Chinese character ratio: ${bestChineseRatio}`);
+
+      // Determine subtitle format and set appropriate Content-Type
+      let contentType = "text/plain";
+      if (subtitleContent.includes("WEBVTT")) {
+        contentType = "text/vtt";
+      } else if (subtitleContent.trim().startsWith("1")) {
+        contentType = "application/x-subrip";
+      }
+
+      return new Response(subtitleContent, {
+        headers: {
+          "Content-Type": contentType,
+          "X-Detected-Encoding": detectedEncoding
+        }
+      });
+    } catch (error) {
+      console.error(`Error handling subtitle display: ${error.message}`);
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  } else {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      // Attempt to gunzip the content
+      let decompressedContent;
+      try {
+        decompressedContent = await gunzip(uint8Array);
+      } catch (gzipError) {
+        console.warn("Content is not gzipped, using raw content:", gzipError);
+        decompressedContent = uint8Array;
+      }
+
+      // Decode the content as UTF-8
+      let subtitleContent;
+      try {
+        subtitleContent = new TextDecoder("utf-8").decode(decompressedContent);
+      } catch (decodeError) {
+        console.error("Error decoding content as UTF-8:", decodeError);
+        throw new Error("Failed to decode subtitle content");
+      }
+
+      if (config.ENABLE_SUBTITLE_AD_REMOVAL) {
+        subtitleContent = removeAdsFromSubtitle(subtitleContent);
+      }
+
+      // Determine subtitle format and set appropriate Content-Type
+      let contentType = "text/plain";
+      if (subtitleContent.includes("WEBVTT")) {
+        contentType = "text/vtt";
+      } else if (subtitleContent.trim().startsWith("1")) {
+        contentType = "application/x-subrip";
+      }
+
+      return new Response(subtitleContent, {
+        headers: {
+          "Content-Type": contentType
+        }
+      });
+    } catch (error) {
+      console.error(`Error fetching subtitle: ${error.message}`);
+      return new Response(JSON.stringify({ error: "Error fetching subtitle" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  }
+}
+
 async function handleSubtitleDownload(url, language) {
   if (['chi', 'zht', 'zhe'].includes(language)) {
 try {
@@ -968,7 +1102,8 @@ async function handleRequest(request) {
   if (!subtitleUrl) {
     return createResponse({ error: "Missing subtitle URL" }, Status.BadRequest);
   }
-  return handleSubtitleDownload(subtitleUrl, language);
+  //handleSubtitleDownload
+  return handleSubtitleDisplay(subtitleUrl, language);
 }
 
   if (path.startsWith("/vidsrc/")) {
