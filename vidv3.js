@@ -5,6 +5,8 @@ import { gunzip } from "https://deno.land/x/compress@v0.4.5/mod.ts";
 // Configuration
 const config = {
   HOST: "vidsrc.cc",
+  NEW_SOURCE_HOST: "yxjucbkw.deploy.cx",
+  NEW_SOURCE_TYPES: ["vidsrc", "vidsrcme"],
   PORT: 8000,
   CACHE_DURATION: 60000, // 1 minute in milliseconds
   MAX_CONCURRENT_REQUESTS: 5,
@@ -1354,6 +1356,47 @@ try {
   
 }
 
+//处理新片源
+function standardizeResponse(source, type, result) {
+  if (source === 'vidsrcme') {
+    return [{
+      name: "VidSrcMe",
+      data: {
+        source: result.file,
+        subtitles: result.subtitles || [],
+        format: "hls"
+      },
+      success: true
+    }];
+  } else if (source === 'vidsrc') {
+    return [{
+      name: "Vidsrc",
+      data: {
+        source: result.sources[0].file,
+        subtitles: result.tracks.map((track, index) => ({
+          file: track.file,
+          label: track.label || `字幕${index + 1}`,
+          kind: track.kind
+        })),
+        format: "hls"
+      },
+      success: true
+    }];
+  }
+  // 对于其他源（如 vidsrc.cc），我们假设它们已经是正确的格式
+  return result.sources;
+}
+
+async function getNewSourceMovie(id, source) {
+  const url = `https://${config.NEW_SOURCE_HOST}/video/?source=${source}&type=movie&id=${id}`;
+  return fetchJson(url);
+}
+
+async function getNewSourceTv(id, season, episode, source) {
+  const url = `https://${config.NEW_SOURCE_HOST}/video/?source=${source}&type=tv&id=${id}&season=${season}&episode=${episode}`;
+  return fetchJson(url);
+}
+
 async function handleRequest(request) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -1416,7 +1459,25 @@ async function handleRequest(request) {
   return handleSubtitleDisplay(subtitleUrl, language);
 }
 
-  if (path.startsWith("/vidsrc/")) {
+  // if (path.startsWith("/vidsrc/")) {
+  //   const tmdbId = path.split("/")[2];
+  //   const season = params.get("s");
+  //   const episode = params.get("e");
+  //   const isMovie = !season && !episode;
+
+  //   try {
+  //     validateParams({ tmdbId, season, episode, isMovie });
+  //     const vidsrcresponse = isMovie
+  //       ? await getvmovie(tmdbId, currentDomain)
+  //       : await getvserie(tmdbId, season, episode, currentDomain);
+  //     return createResponse(vidsrcresponse);
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error);
+  //     return createResponse({ error: error.message }, Status.BadRequest);
+  //   }
+  // }
+
+    if (path.startsWith("/vidsrc/")) {
     const tmdbId = path.split("/")[2];
     const season = params.get("s");
     const episode = params.get("e");
@@ -1424,15 +1485,57 @@ async function handleRequest(request) {
 
     try {
       validateParams({ tmdbId, season, episode, isMovie });
-      const vidsrcresponse = isMovie
-        ? await getvmovie(tmdbId, currentDomain)
-        : await getvserie(tmdbId, season, episode, currentDomain);
-      return createResponse(vidsrcresponse);
+
+      let allSources = [];
+
+      // 获取原有的 vidsrc.cc 响应
+      try {
+        const vidsrcResponse = isMovie
+          ? await getvmovie(tmdbId, currentDomain)
+          : await getvserie(tmdbId, season, episode, currentDomain);
+        allSources = allSources.concat(vidsrcResponse.sources);
+      } catch (error) {
+        console.error('Error fetching data from vidsrc.cc:', error);
+      }
+
+      // 获取所有新片源的响应
+      // 检查 NEW_SOURCE_TYPES 是否存在且不为空
+      if (config.NEW_SOURCE_TYPES && config.NEW_SOURCE_TYPES.length > 0) {
+        // 获取所有新片源的响应
+        for (const source of config.NEW_SOURCE_TYPES) {
+          try {
+            const type = isMovie ? "movie" : "tv";
+            const response = isMovie
+              ? await getNewSourceMovie(tmdbId, source)
+              : await getNewSourceTv(tmdbId, season, episode, source);
+            
+            allSources = allSources.concat(standardizeResponse(source, type, response.result));
+          } catch (error) {
+            console.error(`Error fetching data from ${source}:`, error);
+          }
+        }
+      }
+
+      // 处理字幕
+      allSources.forEach(source => {
+        if (source.data && source.data.subtitles) {
+          source.data.subtitles = source.data.subtitles.map(sub => ({
+            label: sub.label,
+            file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.language || 'eng'}`
+          }));
+        }
+      });
+
+      return createResponse({ sources: allSources });
     } catch (error) {
       console.error('Error fetching data:', error);
       return createResponse({ error: error.message }, Status.BadRequest);
     }
   }
+
+
+
+  
 
   return createResponse({ error: STATUS_TEXT.get(Status.NotFound) }, Status.NotFound);
 }
