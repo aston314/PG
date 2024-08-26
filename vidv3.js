@@ -6,7 +6,8 @@ import { gunzip } from "https://deno.land/x/compress@v0.4.5/mod.ts";
 const config = {
   HOST: "vidsrc.cc",
   NEW_SOURCE_HOST: "yxjucbkw.deploy.cx",
-  NEW_SOURCE_TYPES: ["vidsrc", "vidsrcme"],
+  // NEW_SOURCE_TYPES: ["vidsrc", "vidsrcme"],
+  NEW_SOURCE_TYPES: [],
   PORT: 8000,
   CACHE_DURATION: 60000, // 1 minute in milliseconds
   MAX_CONCURRENT_REQUESTS: 5,
@@ -1532,10 +1533,6 @@ async function handleRequest(request) {
       return createResponse({ error: error.message }, Status.BadRequest);
     }
   }
-
-
-
-  
 
   return createResponse({ error: STATUS_TEXT.get(Status.NotFound) }, Status.NotFound);
 }
