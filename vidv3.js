@@ -16,9 +16,9 @@ const config = {
   MAX_CACHE_SIZE: 1000,
   // SUB_BASE_URL: "https://expensive-salmon-48.deno.dev/subs?url=",
   SUBTITLE_LANGUAGES: [
-    {"lang":"chi","name":"Simplified","localname" : "简体中文"},
-    {"lang":"zht","name":"traditional","localname" : "繁体中文"},
-    {"lang":"eng","name":"English","localname" : "English"},
+    { "lang": "chi", "name": "Simplified", "localname": "简体中文" },
+    { "lang": "zht", "name": "traditional", "localname": "繁体中文" },
+    { "lang": "eng", "name": "English", "localname": "English" },
   ],
   OPENSUBTITLES_USER_AGENT: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36",
   OPENSUBTITLES_XUSER_AGENT: "trailers.to-UA",
@@ -307,13 +307,13 @@ async function fetchWithConcurrencyLimit(urls, fetchFunction, concurrency = conf
 //           'authority': config.OPENSUBTITLES_AUTHORITY
 //         }
 //       });
-      
+
 //       if (!response.ok) {
 //         throw new Error(`HTTP error! status: ${response.status}`);
 //       }
-      
+
 //       const data = await response.json();
-      
+
 //       if (data.length > 0) {
 //         // const bestSubtitle = data.reduce((prev, current) => (prev.SubDownloadsCnt > current.SubDownloadsCnt) ? prev : current);
 //         // // console.log(url, data.length, bestSubtitle.SubDownloadLink,bestSubtitle.IDSubtitleFile)
@@ -417,13 +417,13 @@ async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOU
           'authority': config.OPENSUBTITLES_AUTHORITY
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.length > 0) {
         let subtitles;
         if (languageObj.lang === 'chi') {
@@ -453,7 +453,7 @@ async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOU
   };
 
   const fetchVidsrcSubtitles = async (languageObj) => {
-    
+
     let imdbId, type, season, episode, seasonEpisode;
     if (code.includes("_")) {
       [imdbId, seasonEpisode] = code.split("_");
@@ -495,7 +495,7 @@ async function subfetch(code, languages, timeout = config.SUBTITLE_SEARCH_TIMEOU
       }
       const data = await response.json();
       console.log(data)
-      
+
       return data.map((subPath, index) => ({
         label: `${languageObj.localname}${index + 1} - Vidsrc`,
         file: `${currentDomain}https://vidsrc.pro${subPath}`
@@ -554,11 +554,11 @@ function encryptString(input, key) {
   const sbox = Array.from({ length: 256 }, (_, i) => i);
   let j = 0;
 
-    // 初始化 S-Box
-    for (let i = 0; i < 256; i++) {
-      j = (j + sbox[i] + key.charCodeAt(i % key.length)) % 256;
-      [sbox[i], sbox[j]] = [sbox[j], sbox[i]];
-    }
+  // 初始化 S-Box
+  for (let i = 0; i < 256; i++) {
+    j = (j + sbox[i] + key.charCodeAt(i % key.length)) % 256;
+    [sbox[i], sbox[j]] = [sbox[j], sbox[i]];
+  }
 
   let result = '';
   let i = 0;
@@ -598,9 +598,9 @@ async function episode(data_id_1, data_id_2, type, s, e, tmdbId, currentDomain) 
 
   const baseUrl = `https://${config.HOST}/api/episodes/${data_id_2}/servers?id=${data_id_1}&type=${type}&vrf=${vrfid}`;
   const url = type === 'tv' ? `${baseUrl}&season=${s}&episode=${e}` : baseUrl;
-// console.log(url)
+  // console.log(url)
   const resp = await fetchJson(url);
-  
+
   if (!resp.success || !Array.isArray(resp.data)) {
     throw new Error("Failed to fetch server data or invalid response format");
   }
@@ -618,7 +618,7 @@ async function episode(data_id_1, data_id_2, type, s, e, tmdbId, currentDomain) 
           if (existingSubtitles.size === 0) {
             languagesToSearch = config.SUBTITLE_LANGUAGES;
           } else {
-            languagesToSearch = config.SUBTITLE_LANGUAGES.filter(lang => 
+            languagesToSearch = config.SUBTITLE_LANGUAGES.filter(lang =>
               !Array.from(existingSubtitles).some(label => label.toLowerCase().includes(lang.name.toLowerCase()))
             );
           }
@@ -634,7 +634,7 @@ async function episode(data_id_1, data_id_2, type, s, e, tmdbId, currentDomain) 
               if (additionalSubs.length > 0) {
                 const newSubtitles = additionalSubs.filter(sub => !existingSubtitles.has(sub.label));
                 // sourceData.data.subtitles = (sourceData.data.subtitles || []).concat(newSubtitles);
-                let flattenedNewSubtitles = newSubtitles.flatMap(subtitles => 
+                let flattenedNewSubtitles = newSubtitles.flatMap(subtitles =>
                   Array.isArray(subtitles) ? subtitles : [subtitles]
                 );
                 sourceData.data.subtitles = flattenedNewSubtitles.concat(sourceData.data.subtitles || []);
@@ -845,7 +845,7 @@ async function getvserie(id, s, e, currentDomain) {
 //       try {
 //         const decoder = new TextDecoder(encoding);
 //         subtitleContent = decoder.decode(uint8Array);
-        
+
 //         // Check if the decoded content looks valid
 //         if (subtitleContent.includes('你') || subtitleContent.includes('我') || 
 //             subtitleContent.match(/^\d+:\d+:\d+/m)) {
@@ -916,12 +916,12 @@ function removeAdsFromSubtitle(content) {
 
 function isChineseChar(char) {
   const code = char.charCodeAt(0);
-  return (code >= 0x4E00 && code <= 0x9FFF) || 
-         (code >= 0x3400 && code <= 0x4DBF) || 
-         (code >= 0x20000 && code <= 0x2A6DF) || 
-         (code >= 0x2A700 && code <= 0x2B73F) || 
-         (code >= 0x2B740 && code <= 0x2B81F) || 
-         (code >= 0x2B820 && code <= 0x2CEAF);
+  return (code >= 0x4E00 && code <= 0x9FFF) ||
+    (code >= 0x3400 && code <= 0x4DBF) ||
+    (code >= 0x20000 && code <= 0x2A6DF) ||
+    (code >= 0x2A700 && code <= 0x2B73F) ||
+    (code >= 0x2B740 && code <= 0x2B81F) ||
+    (code >= 0x2B820 && code <= 0x2CEAF);
 }
 
 function calculateChineseRatio(text) {
@@ -961,7 +961,7 @@ function calculateChineseRatio(text) {
 //         try {
 //           const decoder = new TextDecoder(encoding, { fatal: true });
 //           const decodedContent = decoder.decode(uint8Array);
-          
+
 //           const chineseRatio = calculateChineseRatio(decodedContent);
 //           if (chineseRatio > bestChineseRatio) {
 //             subtitleContent = decodedContent;
@@ -1095,7 +1095,7 @@ async function handleSubtitleDisplay(url, language) {
         try {
           const decoder = new TextDecoder(encoding, { fatal: true });
           const decodedContent = decoder.decode(uint8Array);
-          
+
           const chineseRatio = calculateChineseRatio(decodedContent);
           if (chineseRatio > bestChineseRatio) {
             subtitleContent = decodedContent;
@@ -1216,155 +1216,158 @@ async function handleSubtitleDisplay(url, language) {
 
 async function handleSubtitleDownload(url, language) {
   if (['chi', 'zht', 'zhe'].includes(language)) {
-try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    let uint8Array = new Uint8Array(arrayBuffer);
-
-    // Attempt to gunzip the content
     try {
-      uint8Array = await gunzip(uint8Array);
-    } catch (gzipError) {
-      console.warn("Content is not gzipped, using raw content");
-    }
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    // Try different encodings
-    const encodings = [
-      'utf-8', 'gb18030', 'big5', 'gbk', 'gb2312', 'hz-gb-2312', 'euc-cn',
-      'iso-2022-cn', 'shift-jis', 'euc-jp', 'iso-2022-jp'
-    ];
-    let subtitleContent = null;
-    let detectedEncoding = null;
-    let bestChineseRatio = 0;
+      const arrayBuffer = await response.arrayBuffer();
+      let uint8Array = new Uint8Array(arrayBuffer);
 
-    for (const encoding of encodings) {
+      // Attempt to gunzip the content
       try {
-        const decoder = new TextDecoder(encoding, { fatal: true });
-        const decodedContent = decoder.decode(uint8Array);
-        
-        const chineseRatio = calculateChineseRatio(decodedContent);
-        if (chineseRatio > bestChineseRatio) {
-          subtitleContent = decodedContent;
-          detectedEncoding = encoding;
-          bestChineseRatio = chineseRatio;
+        uint8Array = await gunzip(uint8Array);
+      } catch (gzipError) {
+        console.warn("Content is not gzipped, using raw content");
+      }
+
+      // Try different encodings
+      const encodings = [
+        'utf-8', 'gb18030', 'big5', 'gbk', 'gb2312', 'hz-gb-2312', 'euc-cn',
+        'iso-2022-cn', 'shift-jis', 'euc-jp', 'iso-2022-jp'
+      ];
+      let subtitleContent = null;
+      let detectedEncoding = null;
+      let bestChineseRatio = 0;
+
+      for (const encoding of encodings) {
+        try {
+          const decoder = new TextDecoder(encoding, { fatal: true });
+          const decodedContent = decoder.decode(uint8Array);
+
+          const chineseRatio = calculateChineseRatio(decodedContent);
+          if (chineseRatio > bestChineseRatio) {
+            subtitleContent = decodedContent;
+            detectedEncoding = encoding;
+            bestChineseRatio = chineseRatio;
+          }
+
+          // If we find a very good match, we can stop searching
+          if (chineseRatio > 0.3) {
+            break;
+          }
+        } catch (decodeError) {
+          console.warn(`Failed to decode with ${encoding}:`, decodeError);
         }
+      }
 
-        // If we find a very good match, we can stop searching
-        if (chineseRatio > 0.3) {
-          break;
+      if (config.ENABLE_SUBTITLE_AD_REMOVAL) {
+        subtitleContent = removeAdsFromSubtitle(subtitleContent);
+      }
+
+      if (!subtitleContent) {
+        throw new Error("Failed to decode subtitle content with any known encoding");
+      }
+
+      console.log(`Detected encoding: ${detectedEncoding}, Chinese character ratio: ${bestChineseRatio}`);
+
+      // Determine subtitle format
+      let fileExtension = "srt";
+      if (subtitleContent.includes("WEBVTT")) {
+        fileExtension = "vtt";
+      }
+
+      // Create a ReadableStream
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(subtitleContent));
+          controller.close();
         }
-      } catch (decodeError) {
-        console.warn(`Failed to decode with ${encoding}:`, decodeError);
-      }
+      });
+
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "Content-Disposition": `attachment; filename=subtitle.${fileExtension}`,
+          "X-Detected-Encoding": detectedEncoding
+        }
+      });
+    } catch (error) {
+      console.error(`Error handling subtitle download: ${error.message}`);
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
     }
-
-    if (config.ENABLE_SUBTITLE_AD_REMOVAL) {
-      subtitleContent = removeAdsFromSubtitle(subtitleContent);
-    }
-
-    if (!subtitleContent) {
-      throw new Error("Failed to decode subtitle content with any known encoding");
-    }
-
-    console.log(`Detected encoding: ${detectedEncoding}, Chinese character ratio: ${bestChineseRatio}`);
-
-    // Determine subtitle format
-    let fileExtension = "srt";
-    if (subtitleContent.includes("WEBVTT")) {
-      fileExtension = "vtt";
-    }
-
-    // Create a ReadableStream
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(new TextEncoder().encode(subtitleContent));
-        controller.close();
-      }
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename=subtitle.${fileExtension}`,
-        "X-Detected-Encoding": detectedEncoding
-      }
-    });
-  } catch (error) {
-    console.error(`Error handling subtitle download: ${error.message}`);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
   } else {
-try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    // Attempt to gunzip the content
-    let decompressedContent;
     try {
-      decompressedContent = await gunzip(uint8Array);
-    } catch (gzipError) {
-      console.warn("Content is not gzipped, using raw content:", gzipError);
-      decompressedContent = uint8Array;
-    }
-
-    // Decode the content as UTF-8
-    let subtitleContent;
-    try {
-      subtitleContent = new TextDecoder("utf-8").decode(decompressedContent);
-    } catch (decodeError) {
-      console.error("Error decoding content as UTF-8:", decodeError);
-      throw new Error("Failed to decode subtitle content");
-    }
-
-    if (config.ENABLE_SUBTITLE_AD_REMOVAL) {
-          subtitleContent = removeAdsFromSubtitle(subtitleContent);
-    }
-
-    // Create a ReadableStream to mimic Python's generator
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(new TextEncoder().encode(subtitleContent));
-        controller.close();
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    });
 
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "Content-Disposition": "attachment; filename=subtitle.srt"
+      const arrayBuffer = await response.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      // Attempt to gunzip the content
+      let decompressedContent;
+      try {
+        decompressedContent = await gunzip(uint8Array);
+      } catch (gzipError) {
+        console.warn("Content is not gzipped, using raw content:", gzipError);
+        decompressedContent = uint8Array;
       }
-    });
-  } catch (error) {
-    console.error(`Error fetching subtitle: ${error.message}`);
-    return new Response(JSON.stringify({ error: "Error fetching subtitle" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+
+      // Decode the content as UTF-8
+      let subtitleContent;
+      try {
+        subtitleContent = new TextDecoder("utf-8").decode(decompressedContent);
+      } catch (decodeError) {
+        console.error("Error decoding content as UTF-8:", decodeError);
+        throw new Error("Failed to decode subtitle content");
+      }
+
+      if (config.ENABLE_SUBTITLE_AD_REMOVAL) {
+        subtitleContent = removeAdsFromSubtitle(subtitleContent);
+      }
+
+      // Create a ReadableStream to mimic Python's generator
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(subtitleContent));
+          controller.close();
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "Content-Disposition": "attachment; filename=subtitle.srt"
+        }
+      });
+    } catch (error) {
+      console.error(`Error fetching subtitle: ${error.message}`);
+      return new Response(JSON.stringify({ error: "Error fetching subtitle" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
   }
-  }
-  
+
 }
 
 //处理新片源
-function standardizeResponse(source, type, result) {
+function standardizeResponse(source, type, result, currentDomain) {
   if (source === 'vidsrcme') {
     return [{
       name: "VidSrcMe",
       data: {
         source: result.file,
-        subtitles: result.subtitles || [],
+        subtitles: Array.isArray(result.subtitles) ? result.subtitles.map(sub => ({
+          label: sub.label || `字幕${index + 1}`,
+          file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.language || 'eng'}`
+        })) : [],
         format: "hls"
       },
       success: true
@@ -1374,11 +1377,11 @@ function standardizeResponse(source, type, result) {
       name: "Vidsrc",
       data: {
         source: result.sources[0].file,
-        subtitles: result.tracks.map((track, index) => ({
-          file: track.file,
+        tracks: Array.isArray(result.tracks) ? result.tracks.map((track, index) => ({
+          file: `${currentDomain}${track.file}`,
           label: track.label || `字幕${index + 1}`,
           kind: track.kind
-        })),
+        })) : [],
         format: "hls"
       },
       success: true
@@ -1405,7 +1408,7 @@ async function handleRequest(request) {
 
   const currentDomain = `${url.protocol}//${url.hostname}${url.port ? ':' + url.port : ''}/subs?url=`;
   // console.log(currentDomain)
-  
+
   if (request.method === "OPTIONS") {
     return new Response(null, { status: Status.NoContent, headers: corsHeaders });
   }
@@ -1430,7 +1433,7 @@ async function handleRequest(request) {
       const healthCheckUrl = "https://vidsrc.cc/api/episodes/5234726/servers?id=94997&type=tv&season=2&episode=5&v=RmFzdCBYXzIwMjM=&isMobile=false&vrf=" + encodeURIComponent(encryptString("94997", "GXxUGRXb2dDLaZwM"));
       console.log(healthCheckUrl)
       const response = await fetchJson(healthCheckUrl);
-      
+
       if (response.success === false && Array.isArray(response.data) && response.data.length === 0) {
         return createResponse({ status: "not healthy" });
       } else {
@@ -1451,14 +1454,14 @@ async function handleRequest(request) {
   // }
 
   if (path === "/subs") {
-  const subtitleUrl = params.get("url");
-  const language = params.get("lang") || "eng"; // 默认为英语
-  if (!subtitleUrl) {
-    return createResponse({ error: "Missing subtitle URL" }, Status.BadRequest);
+    const subtitleUrl = params.get("url");
+    const language = params.get("lang") || "eng"; // 默认为英语
+    if (!subtitleUrl) {
+      return createResponse({ error: "Missing subtitle URL" }, Status.BadRequest);
+    }
+    //handleSubtitleDownload
+    return handleSubtitleDisplay(subtitleUrl, language);
   }
-  //handleSubtitleDownload
-  return handleSubtitleDisplay(subtitleUrl, language);
-}
 
   // if (path.startsWith("/vidsrc/")) {
   //   const tmdbId = path.split("/")[2];
@@ -1478,7 +1481,7 @@ async function handleRequest(request) {
   //   }
   // }
 
-    if (path.startsWith("/vidsrc/")) {
+  if (path.startsWith("/vidsrc/")) {
     const tmdbId = path.split("/")[2];
     const season = params.get("s");
     const episode = params.get("e");
@@ -1489,17 +1492,6 @@ async function handleRequest(request) {
 
       let allSources = [];
 
-      // 获取原有的 vidsrc.cc 响应
-      try {
-        const vidsrcResponse = isMovie
-          ? await getvmovie(tmdbId, currentDomain)
-          : await getvserie(tmdbId, season, episode, currentDomain);
-        allSources = allSources.concat(vidsrcResponse.sources);
-      } catch (error) {
-        console.error('Error fetching data from vidsrc.cc:', error);
-      }
-
-      // 获取所有新片源的响应
       // 检查 NEW_SOURCE_TYPES 是否存在且不为空
       if (config.NEW_SOURCE_TYPES && config.NEW_SOURCE_TYPES.length > 0) {
         // 获取所有新片源的响应
@@ -1509,23 +1501,28 @@ async function handleRequest(request) {
             const response = isMovie
               ? await getNewSourceMovie(tmdbId, source)
               : await getNewSourceTv(tmdbId, season, episode, source);
-            
-            allSources = allSources.concat(standardizeResponse(source, type, response.result));
+
+            allSources = allSources.concat(standardizeResponse(source, type, response.result, currentDomain));
           } catch (error) {
             console.error(`Error fetching data from ${source}:`, error);
           }
         }
       }
 
-      // 处理字幕
-      allSources.forEach(source => {
-        if (source.data && source.data.subtitles) {
-          source.data.subtitles = source.data.subtitles.map(sub => ({
-            label: sub.label,
-            file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.language || 'eng'}`
-          }));
-        }
-      });
+      // 获取原有的 vidsrc.cc 响应
+      try {
+        const vidsrcResponse = isMovie
+          ? await getvmovie(tmdbId, currentDomain)
+          : await getvserie(tmdbId, season, episode, currentDomain);
+        allSources = allSources.concat(standardizeResponse('vidsrc.cc', isMovie ? 'movie' : 'tv', vidsrcResponse, currentDomain));
+      } catch (error) {
+        console.error('Error fetching data from vidsrc.cc:', error);
+      }
+
+      // 如果没有找到任何源，返回错误
+      if (allSources.length === 0) {
+        return createResponse({ error: "No valid sources found" }, Status.NotFound);
+      }
 
       return createResponse({ sources: allSources });
     } catch (error) {
