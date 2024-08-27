@@ -1,4 +1,5 @@
-import CryptoJS from "https://deno.land/x/crypto_js@4.1.1/crypto-js.js";
+// import CryptoJS from "https://deno.land/x/crypto_js@4.1.1/crypto-js.js";
+import CryptoJS from "https://deno.land/x/cryptojs@v2.5.8/mod.ts";
 
 const NO_STREAM_ERROR = new Error("No stream available");
 
@@ -566,11 +567,21 @@ async function stream(xrax: string, MEGA = 0) {
 
     const wasmLoader = Object.assign(loadWasm, { initSync: QZ }, greetLoader);
 
+    // const Z = function(z: string, Q0: string) {
+    //   try {
+    //     const Q1 = CryptoJS.AES.decrypt(z, Q0);
+    //     return JSON.parse(Q1.toString(CryptoJS.enc.Utf8));
+    //   } catch (Q2) {
+    //   }
+    //   return [];
+    // };
+
     const Z = function(z: string, Q0: string) {
       try {
         const Q1 = CryptoJS.AES.decrypt(z, Q0);
         return JSON.parse(Q1.toString(CryptoJS.enc.Utf8));
       } catch (Q2) {
+        console.error("Decryption error:", Q2);
       }
       return [];
     };
