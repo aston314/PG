@@ -683,4 +683,5 @@ async function stream(xrax: string, MEGA = 0) {
   }
 }
 
-export default { stream };
+// export default { stream };
+export { stream };
