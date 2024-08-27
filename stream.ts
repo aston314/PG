@@ -675,8 +675,9 @@ async function stream(xrax: string, MEGA = 0) {
     });
 
     let str = btoa(String.fromCharCode.apply(null, num));
-    console.log(resp_json)
-    var real = Z(encrypted, str);
+    // console.log(resp_json)
+    // encrypted
+    var real = Z(resp_json, str);
 
     return real;
   } catch (e) {
