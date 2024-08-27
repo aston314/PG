@@ -675,11 +675,14 @@ async function stream(xrax: string, MEGA = 0) {
     });
 
     let str = btoa(String.fromCharCode.apply(null, num));
-    console.log(resp_json)
+    // console.log(resp_json)
     // encrypted
     var real = Z(encrypted, str);
-
-    return real;
+    resp_json.sources = real;
+    
+    // return real;
+    console.log(resp_json)
+    return resp_json;
   } catch (e) {
     throw NO_STREAM_ERROR;
   }
