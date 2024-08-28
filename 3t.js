@@ -113,6 +113,7 @@ async function fetchTMDBInfo(movie: MovieCard, language: string): Promise<MovieC
       const tmdbMovie = results[0];
       return {
         ...movie,
+        id: tmdbMovie.id,
         title: tmdbMovie.title,
         original_title: tmdbMovie.original_title,
         title_org: tmdbMovie.original_title,
