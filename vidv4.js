@@ -1022,6 +1022,11 @@ class BalancedEfficientSubtitleAdRemover {
     if (adDetectionStrategies.timestampStrategy(line)) score += 0.3;
     if (this.contextCheck(context)) score += 0.2;
 
+  // 添加 OpenSubtitles 特定的检查
+    if (line.startsWith("00:00:06,000 --> 00:00:12,")) {
+      score += 0.8; // 给予很高的分数
+    };
+
     const isAd = score > 0.7;
     if (isAd && this.adPatternCache.size < this.config.cacheSize) {
       this.adPatternCache.add(line);
@@ -1710,7 +1715,7 @@ async function handleRequest(request) {
   // }
   if (path === "/health") {
     try {
-      const healthCheckUrl = "https://vidsrc.cc/api/episodes/5234726/servers?id=94997&type=tv&season=2&episode=5&v=RmFzdCBYXzIwMjM=&isMobile=false&vrf=" + encodeURIComponent(encryptString("94997", "GXxUGRXb2dDLaZwM"));
+      const healthCheckUrl = "https://vidsrc.cc/api/episodes/5234726/servers?id=94997&type=tv&season=2&episode=5&v=RmFzdCBYXzIwMjM=&isMobile=false&vrf=" + encodeURIComponent(btoa(encrypt("94997", config.ENCRYPTION_KEY)));
       console.log(healthCheckUrl)
       const response = await fetchJson(healthCheckUrl);
 
