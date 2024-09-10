@@ -618,14 +618,42 @@ function handleWebSocket(socket: WebSocket) {
 //   return response;
 // }
 
+// async function handleHttp(req: Request): Promise<Response> {
+//   const upgrade = req.headers.get("upgrade") || "";
+//   if (upgrade.toLowerCase() != "websocket") {
+//     return new Response("request isn't trying to upgrade to websocket.");
+//   }
+  
+//   try {
+//     const { socket, response } = Deno.upgradeWebSocket(req);
+//     handleWebSocket(socket);
+//     return response;
+//   } catch (err) {
+//     console.error("Failed to upgrade to WebSocket:", err);
+//     return new Response("WebSocket upgrade failed", { status: 400 });
+//   }
+// }
+
 async function handleHttp(req: Request): Promise<Response> {
+  console.log("Received request:", req.method, req.url);
+  console.log("Headers:", JSON.stringify(Object.fromEntries(req.headers), null, 2));
+
   const upgrade = req.headers.get("upgrade") || "";
   if (upgrade.toLowerCase() != "websocket") {
+    console.log("Not a WebSocket upgrade request");
     return new Response("request isn't trying to upgrade to websocket.");
   }
   
   try {
+    console.log("Attempting to upgrade to WebSocket");
     const { socket, response } = Deno.upgradeWebSocket(req);
+    console.log("WebSocket upgrade successful");
+    
+    socket.onopen = () => console.log("WebSocket connection opened");
+    socket.onclose = () => console.log("WebSocket connection closed");
+    socket.onerror = (e) => console.error("WebSocket error:", e);
+    socket.onmessage = (m) => console.log("Received message:", m.data);
+
     handleWebSocket(socket);
     return response;
   } catch (err) {
