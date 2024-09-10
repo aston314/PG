@@ -662,36 +662,77 @@ function handleWebSocket(socket: WebSocket) {
 //   }
 // }
 
-async function handleHttp(req: Request): Promise<Response> {
-//   if (req.headers.get("origin")) {
-//   const headers = new Headers(response.headers);
-//   headers.set("Access-Control-Allow-Origin", req.headers.get("origin")!);
-//   headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-//   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   headers.set("Access-Control-Allow-Credentials", "true");
-//   response = new Response(response.body, {
-//     status: response.status,
-//     statusText: response.statusText,
-//     headers: headers,
-//   });
+// async function handleHttp(req: Request): Promise<Response> {
+// //   if (req.headers.get("origin")) {
+// //   const headers = new Headers(response.headers);
+// //   headers.set("Access-Control-Allow-Origin", req.headers.get("origin")!);
+// //   headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+// //   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+// //   headers.set("Access-Control-Allow-Credentials", "true");
+// //   response = new Response(response.body, {
+// //     status: response.status,
+// //     statusText: response.statusText,
+// //     headers: headers,
+// //   });
+// // }
+//   console.log("Received request:", req.method, req.url);
+//   console.log("Headers:", JSON.stringify(Object.fromEntries(req.headers), null, 2));
+
+//   // 检查 WebSocket 升级请求
+//   const newHeaders = new Headers(req.headers);
+//   newHeaders.set('Upgrade', 'websocket');
+//   newHeaders.set('Connection', 'Upgrade');
+
+//   const upgrade = req.headers.get("upgrade") || "";
+//   const connection = req.headers.get("connection") || "";
+//   const isWebSocketRequest = upgrade.toLowerCase() === "websocket" && 
+//                              connection.toLowerCase().includes("upgrade");
+
+//   const secwebsocketkey = req.headers.get("sec-websocket-key") || "";
+
+//   if (!isWebSocketRequest) {
+//   // if (secwebsocketkey == "") {
+//     console.log("Not a WebSocket upgrade request");
+//     return new Response("request isn't trying to upgrade to websocket.");
+//   }
+  
+//   try {
+//     console.log("Attempting to upgrade to WebSocket");
+//     const { socket, response } = Deno.upgradeWebSocket(req);
+//     console.log("WebSocket upgrade successful");
+    
+//     socket.onopen = () => console.log("WebSocket connection opened");
+//     socket.onclose = () => console.log("WebSocket connection closed");
+//     socket.onerror = (e) => console.error("WebSocket error:", e);
+//     socket.onmessage = (m) => console.log("Received message:", m.data);
+
+//     handleWebSocket(socket);
+//     return response;
+//   } catch (err) {
+//     console.error("Failed to upgrade to WebSocket:", err);
+//     return new Response("WebSocket upgrade failed", { status: 400 });
+//   }
 // }
+
+async function handleHttp(req: Request): Promise<Response> {
   console.log("Received request:", req.method, req.url);
   console.log("Headers:", JSON.stringify(Object.fromEntries(req.headers), null, 2));
 
-  // 检查 WebSocket 升级请求
-  const newHeaders = new Headers(req.headers);
-  newHeaders.set('Upgrade', 'websocket');
-  newHeaders.set('Connection', 'Upgrade');
+  const origin = req.headers.get("origin");
+
+  // 处理 CORS 预检请求
+  if (req.method === "OPTIONS") {
+    const headers = new Headers({
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, Upgrade, Connection",
+      "Access-Control-Max-Age": "86400",
+    });
+    return new Response(null, { status: 204, headers });
+  }
 
   const upgrade = req.headers.get("upgrade") || "";
-  const connection = req.headers.get("connection") || "";
-  const isWebSocketRequest = upgrade.toLowerCase() === "websocket" && 
-                             connection.toLowerCase().includes("upgrade");
-
-  const secwebsocketkey = req.headers.get("sec-websocket-key") || "";
-
-  if (!isWebSocketRequest) {
-  // if (secwebsocketkey == "") {
+  if (upgrade.toLowerCase() !== "websocket") {
     console.log("Not a WebSocket upgrade request");
     return new Response("request isn't trying to upgrade to websocket.");
   }
@@ -701,13 +742,18 @@ async function handleHttp(req: Request): Promise<Response> {
     const { socket, response } = Deno.upgradeWebSocket(req);
     console.log("WebSocket upgrade successful");
     
-    socket.onopen = () => console.log("WebSocket connection opened");
-    socket.onclose = () => console.log("WebSocket connection closed");
-    socket.onerror = (e) => console.error("WebSocket error:", e);
-    socket.onmessage = (m) => console.log("Received message:", m.data);
+    // 添加 CORS 头到 WebSocket 升级响应
+    const headers = new Headers(response.headers);
+    headers.set("Access-Control-Allow-Origin", "*");
+
+    const corsResponse = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: headers,
+    });
 
     handleWebSocket(socket);
-    return response;
+    return corsResponse;
   } catch (err) {
     console.error("Failed to upgrade to WebSocket:", err);
     return new Response("WebSocket upgrade failed", { status: 400 });
