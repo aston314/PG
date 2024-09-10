@@ -663,7 +663,7 @@ function handleWebSocket(socket: WebSocket) {
 // }
 
 async function handleHttp(req: Request): Promise<Response> {
-  f (req.headers.get("origin")) {
+  if (req.headers.get("origin")) {
   const headers = new Headers(response.headers);
   headers.set("Access-Control-Allow-Origin", req.headers.get("origin")!);
   headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
