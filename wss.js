@@ -684,7 +684,10 @@ async function handleHttp(req: Request): Promise<Response> {
   const isWebSocketRequest = upgrade.toLowerCase() === "websocket" && 
                              connection.toLowerCase().includes("upgrade");
 
-  if (!isWebSocketRequest) {
+  const secwebsocketkey = req.headers.get("sec-websocket-key") || "";
+
+  // if (!isWebSocketRequest) {
+  if (secwebsocketkey == "") {
     console.log("Not a WebSocket upgrade request");
     return new Response("request isn't trying to upgrade to websocket.");
   }
