@@ -676,15 +676,32 @@ function handleWebSocket(socket: WebSocket) {
      console.log("Is Secure:", isSecure);
 
      // 检查 WebSocket 相关头部
-     const upgrade = req.headers.get("upgrade") || "";
-     const connection = req.headers.get("connection") || "";
+     let upgrade = req.headers.get("upgrade") || "";
+     let connection = req.headers.get("connection") || "";
      const secWebSocketKey = req.headers.get("sec-websocket-key");
      console.log("Upgrade Header:", upgrade);
      console.log("Connection Header:", connection);
      console.log("Sec-WebSocket-Key:", secWebSocketKey);
 
+     // 如果存在 sec-websocket-key 但缺少其他头部，手动添加它们
+     if (secWebSocketKey && (!upgrade || !connection)) {
+       const newHeaders = new Headers(req.headers);
+       if (!upgrade) newHeaders.set("upgrade", "websocket");
+       if (!connection) newHeaders.set("connection", "Upgrade");
+       
+       // 创建新的请求对象，包含修改后的头部
+       req = new Request(req.url, {
+         method: req.method,
+         headers: newHeaders,
+         body: req.body
+       });
+       
+       upgrade = "websocket";
+       connection = "Upgrade";
+     }
+
      // 更宽松的 WebSocket 检查
-     if (secWebSocketKey) {
+     if (upgrade.toLowerCase() === "websocket" && connection.toLowerCase().includes("upgrade")) {
        try {
          console.log("Attempting to upgrade to WebSocket");
          const { socket, response } = Deno.upgradeWebSocket(req);
