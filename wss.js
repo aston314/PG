@@ -630,11 +630,16 @@ async function handleWebSocket(ws: WebSocket) {
 }
 
 // 设置WebSocket服务器
-const wss = new WebSocketServer(8000);
+// const wss = new WebSocketServer(8000);
+// 设置WebSocket服务器
+const port = parseInt(Deno.env.get("PORT") || "8000");
+const wss = new WebSocketServer({ port: port, hostname: "0.0.0.0" });
 
 wss.on("connection", (ws: WebSocket) => {
   handleWebSocket(ws);
 });
+
+console.log(`WebSocket 字幕翻译服务器正在运行，端口: ${port}`);
 
 // 添加每日分析的定时器
 const dailyAnalysisInterval = setInterval(async () => {
