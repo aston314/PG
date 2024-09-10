@@ -612,10 +612,26 @@ function handleWebSocket(socket: WebSocket) {
   };
 }
 
+// async function handleHttp(req: Request): Promise<Response> {
+//   const { socket, response } = Deno.upgradeWebSocket(req);
+//   handleWebSocket(socket);
+//   return response;
+// }
+
 async function handleHttp(req: Request): Promise<Response> {
-  const { socket, response } = Deno.upgradeWebSocket(req);
-  handleWebSocket(socket);
-  return response;
+  const upgrade = req.headers.get("upgrade") || "";
+  if (upgrade.toLowerCase() != "websocket") {
+    return new Response("request isn't trying to upgrade to websocket.");
+  }
+  
+  try {
+    const { socket, response } = Deno.upgradeWebSocket(req);
+    handleWebSocket(socket);
+    return response;
+  } catch (err) {
+    console.error("Failed to upgrade to WebSocket:", err);
+    return new Response("WebSocket upgrade failed", { status: 400 });
+  }
 }
 
 console.log("WebSocket 字幕翻译服务器正在运行，地址为 http://localhost:8000");
