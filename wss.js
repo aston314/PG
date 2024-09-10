@@ -679,6 +679,10 @@ async function handleHttp(req: Request): Promise<Response> {
   console.log("Headers:", JSON.stringify(Object.fromEntries(req.headers), null, 2));
 
   // 检查 WebSocket 升级请求
+  const newHeaders = new Headers(req.headers);
+  newHeaders.set('Upgrade', 'websocket');
+  newHeaders.set('Connection', 'Upgrade');
+
   const upgrade = req.headers.get("upgrade") || "";
   const connection = req.headers.get("connection") || "";
   const isWebSocketRequest = upgrade.toLowerCase() === "websocket" && 
@@ -686,8 +690,8 @@ async function handleHttp(req: Request): Promise<Response> {
 
   const secwebsocketkey = req.headers.get("sec-websocket-key") || "";
 
-  // if (!isWebSocketRequest) {
-  if (secwebsocketkey == "") {
+  if (!isWebSocketRequest) {
+  // if (secwebsocketkey == "") {
     console.log("Not a WebSocket upgrade request");
     return new Response("request isn't trying to upgrade to websocket.");
   }
