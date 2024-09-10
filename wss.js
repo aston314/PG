@@ -663,18 +663,18 @@ function handleWebSocket(socket: WebSocket) {
 // }
 
 async function handleHttp(req: Request): Promise<Response> {
-  if (req.headers.get("origin")) {
-  const headers = new Headers(response.headers);
-  headers.set("Access-Control-Allow-Origin", req.headers.get("origin")!);
-  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  headers.set("Access-Control-Allow-Credentials", "true");
-  response = new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: headers,
-  });
-}
+//   if (req.headers.get("origin")) {
+//   const headers = new Headers(response.headers);
+//   headers.set("Access-Control-Allow-Origin", req.headers.get("origin")!);
+//   headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+//   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   headers.set("Access-Control-Allow-Credentials", "true");
+//   response = new Response(response.body, {
+//     status: response.status,
+//     statusText: response.statusText,
+//     headers: headers,
+//   });
+// }
   console.log("Received request:", req.method, req.url);
   console.log("Headers:", JSON.stringify(Object.fromEntries(req.headers), null, 2));
 
