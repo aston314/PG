@@ -1,4 +1,5 @@
-import { WebSocketServer } from "https://deno.land/x/websocket@v0.1.4/mod.ts";
+// import { WebSocketServer } from "https://deno.land/x/websocket@v0.1.4/mod.ts";
+import { serve } from "https://deno.land/std@0.180.0/http/server.ts";
 import { LRU } from "https://deno.land/x/lru@1.0.2/mod.ts";
 import { franc } from 'https://esm.sh/franc-min@6.1.0';
 
@@ -367,7 +368,7 @@ function splitMergedSubtitle(mergedSubtitle: SubtitleEntry): SubtitleEntry[] {
   });
 }
 
-async function handleWebSocket(ws: WebSocket) {
+function handleWebSocket(socket: WebSocket) {
   console.log("[WebSocket] 新的 WebSocket 连接已建立");
   let subtitles: SubtitleEntry[] = [];
   let heartbeatInterval: number;
@@ -378,17 +379,14 @@ async function handleWebSocket(ws: WebSocket) {
   let shouldStopTranslation = false;
 
   const heartbeat = () => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ action: "heartbeat" }));
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ action: "heartbeat" }));
     } else {
       clearInterval(heartbeatInterval);
     }
   };
 
-  ws.on("open", () => {
-    console.log("[WebSocket] 连接已打开");
-    heartbeatInterval = setInterval(heartbeat, 30000);
-  });
+  heartbeatInterval = setInterval(heartbeat, 30000);
 
   async function stopTranslation() {
     if (abortController) {
@@ -399,36 +397,27 @@ async function handleWebSocket(ws: WebSocket) {
     shouldStopTranslation = false;
     console.log("[WebSocket] 翻译已停止");
     if (isConnected) {
-      ws.send(JSON.stringify({ action: "translationStopped" }));
+      socket.send(JSON.stringify({ action: "translationStopped" }));
     }
   }
 
-  ws.on("message", async (message: string) => {
+  socket.onmessage = async (event) => {
     if (!isConnected) return;
 
     try {
-      const data = JSON.parse(message);
+      const data = JSON.parse(event.data);
 
       switch (data.action) {
         case "initialize":
-          // console.log("[WebSocket] 收到初始化请求");
-          // subtitles = initializeSubtitles(data.subtitles);
-          // if (!Array.isArray(subtitles) || subtitles.length === 0) {
-          //   throw new Error("无效的字幕数组");
-          // }
-          // console.log(`[WebSocket] 初始化字幕数组，长度: ${subtitles.length}`);
-          // ws.send(JSON.stringify({ action: "initialized" }));
-          // break;
-
-                    subtitles = initializeSubtitles(data.subtitles);
-                    translatedSubtitleIds.clear();
-                    isTranslating = false;
-                    if (!Array.isArray(subtitles) || subtitles.length === 0) {
-                      throw new Error("无效的字幕数组");
-                    }
-                    console.log(`[WebSocket] 初始化字幕数组，长度: ${subtitles.length}`);
-                    ws.send(JSON.stringify({ action: "initialized" }));
-                    break;
+          subtitles = initializeSubtitles(data.subtitles);
+          translatedSubtitleIds.clear();
+          isTranslating = false;
+          if (!Array.isArray(subtitles) || subtitles.length === 0) {
+            throw new Error("无效的字幕数组");
+          }
+          console.log(`[WebSocket] 初始化字幕数组，长度: ${subtitles.length}`);
+          socket.send(JSON.stringify({ action: "initialized" }));
+          break;
 
         case "translate":
           console.log("[WebSocket] 收到翻译请求");
@@ -464,7 +453,6 @@ async function handleWebSocket(ws: WebSocket) {
           const targetLangCount = validDetections.filter(lang => lang === targetLanguage).length;
           const detectionThreshold = Math.max(1, Math.floor(validDetections.length * 0.6));
 
-          // 确定最常见的检测语言
           const detectedLanguage = validDetections.length > 0
             ? validDetections.reduce((a, b, i, arr) =>
                 arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
@@ -473,24 +461,19 @@ async function handleWebSocket(ws: WebSocket) {
 
           if (targetLangCount >= detectionThreshold) {
             console.log(`[Translator] 检测到字幕主要是目标语言 (${targetLanguage})，跳过翻译`);
-            // 发送语言检测结果给客户端
-            ws.send(JSON.stringify({
+            socket.send(JSON.stringify({
               action: "languageDetected",
               language: detectedLanguage,
               message: "Source language matches target language, translation skipped"
             }));
-
-            // 然后发送翻译完成的消息
-            ws.send(JSON.stringify({ action: "translationComplete" }));
+            socket.send(JSON.stringify({ action: "translationComplete" }));
             isTranslating = false;
             abortController = null;
           } else {
             console.log(`[Translator] 检测到字幕不是目标语言，继续翻译`);
-
-            // 可以选择也发送一个语言检测的消息，表明将进行翻译
-            ws.send(JSON.stringify({
+            socket.send(JSON.stringify({
               action: "languageDetected",
-              language: "different", // 或者可以发送最常检测到的非目标语言
+              language: detectedLanguage,
               message: "Source language differs from target language, proceeding with translation"
             }));
             
@@ -513,7 +496,7 @@ async function handleWebSocket(ws: WebSocket) {
 
               if (isConnected && !shouldStopTranslation) {
                 console.log(`[WebSocket] 发送初始快速翻译结果，包含 ${translatedInitialBatch.length} 条字幕`);
-                ws.send(JSON.stringify({
+                socket.send(JSON.stringify({
                   action: "translationResult",
                   subtitles: translatedInitialBatch
                 }));
@@ -559,7 +542,7 @@ async function handleWebSocket(ws: WebSocket) {
                   const distributedResults = translatedBatch.flatMap(splitMergedSubtitle);
                   distributedResults.forEach(sub => translatedSubtitleIds.add(sub.id));
                   console.log(`[WebSocket] 发送翻译结果，包含 ${distributedResults.length} 条字幕`);
-                  ws.send(JSON.stringify({
+                  socket.send(JSON.stringify({
                     action: "translationResult",
                     subtitles: distributedResults
                   }));
@@ -568,14 +551,14 @@ async function handleWebSocket(ws: WebSocket) {
 
               if (isConnected && !shouldStopTranslation) {
                 console.log(`[WebSocket] 翻译完成，共翻译 ${subtitlesToTranslate.length} 条字幕`);
-                ws.send(JSON.stringify({ action: "translationComplete" }));
+                socket.send(JSON.stringify({ action: "translationComplete" }));
               }
             } catch (error) {
               console.error("[Translator] 翻译过程中出错:", error);
               if (error.message === "Translation stopped") {
                 console.log("[Translator] 翻译被手动停止");
               } else if (error.name !== 'AbortError' && isConnected) {
-                ws.send(JSON.stringify({ action: "error", message: error.message }));
+                socket.send(JSON.stringify({ action: "error", message: error.message }));
               }
             } finally {
               isTranslating = false;
@@ -594,7 +577,7 @@ async function handleWebSocket(ws: WebSocket) {
 
         case "closeConnection":
           console.log("[WebSocket] 收到关闭连接请求");
-          ws.close();
+          socket.close();
           break;
 
         case "heartbeatResponse":
@@ -607,39 +590,36 @@ async function handleWebSocket(ws: WebSocket) {
     } catch (error) {
       console.error("[WebSocket] 处理消息时出错:", error);
       if (isConnected) {
-        ws.send(JSON.stringify({ action: "error", message: error.message }));
+        socket.send(JSON.stringify({ action: "error", message: error.message }));
       }
     }
-  });
+  };
 
-  ws.on("close", () => {
+  socket.onclose = () => {
     console.log("[WebSocket] 连接已关闭");
     isConnected = false;
     clearInterval(heartbeatInterval);
     if (isTranslating) {
       stopTranslation();
     }
-  });
+  };
 
-  ws.on("error", async (error) => {
+  socket.onerror = async (error) => {
     console.error("[WebSocket] 发生错误:", error);
     if (isTranslating) {
       await stopTranslation();
     }
-  });
+  };
 }
 
-// 设置WebSocket服务器
-// const wss = new WebSocketServer(8000);
-// 设置WebSocket服务器
-const port = parseInt(Deno.env.get("PORT") || "8000");
-const wss = new WebSocketServer({ port: port, hostname: "0.0.0.0" });
+async function handleHttp(req: Request): Promise<Response> {
+  const { socket, response } = Deno.upgradeWebSocket(req);
+  handleWebSocket(socket);
+  return response;
+}
 
-wss.on("connection", (ws: WebSocket) => {
-  handleWebSocket(ws);
-});
-
-console.log(`WebSocket 字幕翻译服务器正在运行，端口: ${port}`);
+console.log("WebSocket 字幕翻译服务器正在运行，地址为 http://localhost:8000");
+await serve(handleHttp, { port: 8000 });
 
 // 添加每日分析的定时器
 const dailyAnalysisInterval = setInterval(async () => {
