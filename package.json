@@ -1,0 +1,25 @@
+{
+  "name": "subtitle-translator",
+  "version": "1.0.0",
+  "description": "Subtitle translation service converted from Deno to Node.js",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "franc-min": "^6.1.0",
+    "lru-cache": "^6.0.0",
+    "node-fetch": "^3.2.0",
+    "ws": "^8.5.0"
+  },
+  "devDependencies": {
+    "@types/lru-cache": "^5.1.1",
+    "@types/node": "^16.11.12",
+    "@types/ws": "^8.5.3",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  }
+}
