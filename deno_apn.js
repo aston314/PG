@@ -239,7 +239,9 @@ async function handle(request, connInfo) {
 
     function fixLink(link, proxy, url, base) {
       if (!link) return link;
-      
+      if (link.includes('_v16')) {
+        link = link.replace('https://', 'https://up.vid124.site/');
+      }
       try {
         // 尝试作为完整URL解析
         new URL(link);
