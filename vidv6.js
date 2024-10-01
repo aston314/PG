@@ -20,11 +20,18 @@ const config = {
       enabled: true
     },
     { 
-      type: "vidsrcme", 
+      type: "vidsrcme1", 
       host: "etargcbf.deploy.cx",
       movieUrlTemplate: "/movie/{id}",
       tvUrlTemplate: "/tv/{id}/{season}/{episode}",
       enabled: false
+    },
+    { 
+      type: "vidsrcme", 
+      host: "vidsrc-ts-ten.vercel.app",
+      movieUrlTemplate: "/{id}",
+      tvUrlTemplate: "/{id}/{season}/{episode}",
+      enabled: true
     }
   ],
   // NEW_SOURCE_TYPES: [],
@@ -1586,15 +1593,17 @@ function standardizeResponse(source, type, result, currentDomain) {
     //   },
     //   success: true
     // }];
+    // console.log(result,result[0].stream)
     return [{
       name: "VidSrcMe",
       data: {
-        source: result.stream,
+        source: result[0].stream,
         subtitles: Array.isArray(result.subtitles) ? result.subtitles.map(sub => ({
           label: sub.label || `字幕${index + 1}`,
           file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.language || 'eng'}`
         })) : [],
-        format: "hls"
+        format: "hls",
+        referer: result[0].referer
       },
       success: true
     }];
