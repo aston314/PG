@@ -1234,8 +1234,8 @@ async function handleRequest(request) {
                 }
             }
 
-            if (config.USEVIDSRCME){
-            // 获取原有的 vidsrc.cc 响应
+            if (config.USEVIDSRCME) {
+                // 获取原有的 vidsrc.cc 响应
                 try {
                     const vidsrcResponse = isMovie
                         ? await getvmovie(tmdbId, currentDomain)
@@ -1246,15 +1246,20 @@ async function handleRequest(request) {
                 }
             }
 
+            allSources = allSources.filter(source => source.data.source);
+
             const vidsrcNetData = allSources.find(s => s.name === "Vidsrc.net");
             const upcloudData = allSources.find(s => s.name === "UpCloud");
             const VidlinkProData = allSources.find(s => s.name === "Vidlink.pro");
 
-            if (vidsrcNetData && upcloudData) {
+            let getSubtitles = [];
+            getSubtitles = upcloudData ? upcloudData.data.subtitles : [] || VidlinkProData ? VidlinkProData.data.subtitles : [];
+
+            if (vidsrcNetData && getSubtitles.length > 0) {
                 // Merge subtitles from upcloud into Vidsrc.net data
                 const mergedSubtitles = [
                     ...(vidsrcNetData.data.subtitles || []),
-                    ...(upcloudData.data.subtitles || [])
+                    ...(getSubtitles || [])
                 ];
 
                 // Remove duplicates based on label
