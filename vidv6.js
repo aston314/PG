@@ -17,7 +17,7 @@ const config = {
       host: "vidsrcpro.deno.dev",
       movieUrlTemplate: "/movie/{id}",
       tvUrlTemplate: "/tv/{id}/{season}/{episode}",
-      enabled: true
+      enabled: false
     },
     { 
       type: "vidsrcme1", 
@@ -27,10 +27,24 @@ const config = {
       enabled: false
     },
     { 
-      type: "vidsrcme", 
+      type: "vidsrcme2", 
       host: "vidsrc-ts-ten.vercel.app",
       movieUrlTemplate: "/{id}",
       tvUrlTemplate: "/{id}/{season}/{episode}",
+      enabled: false
+    },
+    { 
+      type: "vidlink", 
+      host: "fzozzyyh.deploy.cx",
+      movieUrlTemplate: "/vidlink/watch/?isMovie=true&id={id}",
+      tvUrlTemplate: "/vidlink/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
+      enabled: true
+    },
+    { 
+      type: "vidsrc.net", 
+      host: "fzozzyyh.deploy.cx",
+      movieUrlTemplate: "/vidsrc/watch/?isMovie=true&id={id}",
+      tvUrlTemplate: "/vidsrc/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
       enabled: true
     }
   ],
@@ -1580,19 +1594,7 @@ async function handleSubtitleDownload(url, language) {
 
 //处理新片源
 function standardizeResponse(source, type, result, currentDomain) {
-  if (source === 'vidsrcme') {
-    // return [{
-    //   name: "VidSrcMe",
-    //   data: {
-    //     source: result.file,
-    //     subtitles: Array.isArray(result.subtitles) ? result.subtitles.map(sub => ({
-    //       label: sub.label || `字幕${index + 1}`,
-    //       file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.language || 'eng'}`
-    //     })) : [],
-    //     format: "hls"
-    //   },
-    //   success: true
-    // }];
+  if (source === 'vidsrcme2') {
     // console.log(result,result[0].stream)
     return [{
       name: "VidSrcMe",
@@ -1607,7 +1609,20 @@ function standardizeResponse(source, type, result, currentDomain) {
       },
       success: true
     }];
-  } else if (source === 'vidsrc') {
+  } else if (source === 'vidsrcme1') {
+    return [{
+      name: "VidSrcMe1",
+      data: {
+        source: result.file,
+        subtitles: Array.isArray(result.subtitles) ? result.subtitles.map(sub => ({
+          label: sub.label || `字幕${index + 1}`,
+          file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.language || 'eng'}`
+        })) : [],
+        format: "hls"
+      },
+      success: true
+    }];
+  } else if (source === 'vidsrc2') {
     return [{
       name: "Vidsrc",
       data: {
@@ -1621,6 +1636,21 @@ function standardizeResponse(source, type, result, currentDomain) {
       },
       success: true
     }];
+  } else if (source === 'vidsrc.net') {
+    return [{
+      name: "Vidsrc.net",
+      data: {
+        source: result.url,
+        subtitles: Array.isArray(result.tracks) ? result.tracks.map((track, index) => ({
+          file: `${currentDomain}${track.file}`,
+          label: track.label || `字幕${index + 1}`,
+          kind: track.kind
+        })) : [],
+        referer: result.referer,
+        format: "hls"
+      },
+      success: true
+    }];
   } else if (source === 'vidsrcpro') {
     // console.log(result)
     return [{
@@ -1628,6 +1658,21 @@ function standardizeResponse(source, type, result, currentDomain) {
       data: {
         source: result.stream,
         subtitles: result.subtitles,
+        format: "hls"
+      },
+      success: true
+    }];
+  } else if (source === 'vidlink') {
+    // console.log(result)
+    return [{
+      name: "Vidlink.pro",
+      data: {
+        source: result.stream.playlist,
+        // subtitles: result.stream.captions,
+        subtitles: Array.isArray(result.stream.captions) ? result.stream.captions.map(sub => ({
+          label: sub.language || `字幕${index + 1}`,
+          file: `${currentDomain}${encodeURIComponent(sub.url)}&lang=${sub.language.includes('hinese') ? 'chi' : 'eng'}`
+        })) : [],
         format: "hls"
       },
       success: true
