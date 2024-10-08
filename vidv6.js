@@ -1253,7 +1253,13 @@ async function handleRequest(request) {
             const VidlinkProData = allSources.find(s => s.name === "Vidlink.pro");
 
             let getSubtitles = [];
-            getSubtitles = upcloudData && upcloudData.data.subtitles[0].label != 'OFF' ? upcloudData.data.subtitles : [] || VidlinkProData ? VidlinkProData.data.subtitles : [];
+            // getSubtitles = upcloudData && upcloudData.data.subtitles[0].label != 'OFF' ? upcloudData.data.subtitles : [] || VidlinkProData ? VidlinkProData.data.subtitles : [];
+
+            if (upcloudData && upcloudData.data.subtitles[0].label !== 'OFF') {
+                getSubtitles = upcloudData.data.subtitles;
+            } else if (VidlinkProData) {
+                getSubtitles = VidlinkProData.data.subtitles;
+            }
 
             if (vidsrcNetData && getSubtitles.length > 0) {
                 // Merge subtitles from upcloud into Vidsrc.net data
