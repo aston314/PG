@@ -48,6 +48,13 @@ const config = {
             movieUrlTemplate: "/vidsrc/watch/?isMovie=true&id={id}",
             tvUrlTemplate: "/vidsrc/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
             enabled: true
+        },
+        {
+            type: "moviesAPI",
+            host: "moviesapi.deno.dev",
+            movieUrlTemplate: "/moviesapi/watch/?isMovie=true&id={id}",
+            tvUrlTemplate: "/moviesapi/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
+            enabled: true
         }
     ],
     // NEW_SOURCE_TYPES: [],
@@ -1094,6 +1101,7 @@ function standardizeResponse(source, type, result, currentDomain) {
                 subtitles: Array.isArray(result.stream.captions) ? result.stream.captions.map(sub => ({
                     label: sub.language || `字幕${index + 1}`,
                     file: `${currentDomain}${encodeURIComponent(sub.url)}&lang=${sub.language.includes('hinese') ? 'chi' : 'eng'}`
+                    // file: 'https://quvhfoih.deploy.cx/' + sub.url
                 })) : [],
                 format: "hls"
             },
@@ -1108,8 +1116,26 @@ function standardizeResponse(source, type, result, currentDomain) {
                 // subtitles: result.stream.captions,
                 subtitles: Array.isArray(result.data.subtitles) ? result.data.subtitles.map(sub => ({
                     label: sub.label || `字幕${index + 1}`,
-                    file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.label.includes('hinese') ? 'chi' : 'eng'}`
+                    // file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.label.includes('hinese') ? 'chi' : 'eng'}`
+                    file: sub.file
                 })) : [],
+                format: "hls"
+            },
+            success: true
+        }];
+    } else if (source === 'moviesAPI') {
+        // console.log(result.tracks)
+        return [{
+            name: "moviesAPI",
+            data: {
+                source: result.sources[0].file,
+                // subtitles: result.stream.captions,
+                subtitles: Array.isArray(result.tracks) ? result.tracks.map(sub => ({
+                    label: sub.label ,
+                    // file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.label.includes('hinese') ? 'chi' : 'eng'}`
+                    file: sub.file
+                })) : [],
+                referer: result.referer,
                 format: "hls"
             },
             success: true
