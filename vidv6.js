@@ -1133,7 +1133,7 @@ function standardizeResponse(source, type, result, currentDomain) {
                 subtitles: Array.isArray(result.tracks) ? result.tracks.map(sub => ({
                     label: sub.label ,
                     // file: `${currentDomain}${encodeURIComponent(sub.file)}&lang=${sub.label.includes('hinese') ? 'chi' : 'eng'}`
-                    file: sub.file
+                    file: 'https://quvhfoih.deploy.cx/param/Referer=moviesapi.club/' + sub.file
                 })) : [],
                 referer: result.referer,
                 format: "hls"
