@@ -1124,9 +1124,9 @@ function standardizeResponse(source, type, result, currentDomain) {
             success: true
         }];
     } else if (source === 'moviesAPI') {
-        // console.log(result.tracks)
+        // console.log(result)
         return [{
-            name: "moviesAPI",
+            name: "Movieapi.club",
             data: {
                 source: result.sources[0].file,
                 // subtitles: result.stream.captions,
@@ -1277,12 +1277,13 @@ async function handleRequest(request) {
             const vidsrcNetData = allSources.find(s => s.name === "Vidsrc.net");
             const upcloudData = allSources.find(s => s.name === "UpCloud");
             const VidlinkProData = allSources.find(s => s.name === "Vidlink.pro");
+            const MovieapiData = allSources.find(s => s.name === "Movieapi.club");
 
             let getSubtitles = [];
             // getSubtitles = upcloudData && upcloudData.data.subtitles[0].label != 'OFF' ? upcloudData.data.subtitles : [] || VidlinkProData ? VidlinkProData.data.subtitles : [];
 
-            if (upcloudData && upcloudData.data.subtitles[0].label !== 'OFF') {
-                getSubtitles = upcloudData.data.subtitles;
+            if (MovieapiData && MovieapiData.data.subtitles[0].label !== 'OFF') {
+                getSubtitles = MovieapiData.data.subtitles;
             } else if (VidlinkProData) {
                 getSubtitles = VidlinkProData.data.subtitles;
             }
