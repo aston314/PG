@@ -33,14 +33,14 @@ const config = {
             host: "fzozzyyh.deploy.cx",
             movieUrlTemplate: "/upcloud/watch/?isMovie=true&id={id}",
             tvUrlTemplate: "/upcloud/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
-            enabled: true
+            enabled: false
         },
         {
             type: "vidlink",
             host: "fzozzyyh.deploy.cx",
             movieUrlTemplate: "/vidlink/watch/?isMovie=true&id={id}",
             tvUrlTemplate: "/vidlink/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
-            enabled: true
+            enabled: false
         },
         {
             type: "vidsrc.net",
@@ -1296,17 +1296,18 @@ async function handleRequest(request) {
                 ];
 
                 // Remove duplicates based on label
-                const uniqueSubtitles = mergedSubtitles.reduce((acc, current) => {
-                    const x = acc.find(item => item.label === current.label);
-                    if (!x) {
-                        return acc.concat([current]);
-                    } else {
-                        return acc;
-                    }
-                }, []);
+                // const uniqueSubtitles = mergedSubtitles.reduce((acc, current) => {
+                //     const x = acc.find(item => item.label === current.label);
+                //     if (!x) {
+                //         return acc.concat([current]);
+                //     } else {
+                //         return acc;
+                //     }
+                // }, []);
 
                 // Update Vidsrc.net data with merged subtitles
-                vidsrcNetData.data.subtitles = uniqueSubtitles;
+                // vidsrcNetData.data.subtitles = uniqueSubtitles;
+                vidsrcNetData.data.subtitles = mergedSubtitles;
             }
 
             if (VidlinkProData && upcloudData && VidlinkProData.data.subtitles.length == 0) {
