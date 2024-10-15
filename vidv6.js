@@ -1278,14 +1278,15 @@ async function handleRequest(request) {
             const upcloudData = allSources.find(s => s.name === "UpCloud");
             const VidlinkProData = allSources.find(s => s.name === "Vidlink.pro");
             const MovieapiData = allSources.find(s => s.name === "Movieapi.club");
+            const vidsrcProData = allSources.find(s => s.name === "VidsrcPro");
 
             let getSubtitles = [];
             // getSubtitles = upcloudData && upcloudData.data.subtitles[0].label != 'OFF' ? upcloudData.data.subtitles : [] || VidlinkProData ? VidlinkProData.data.subtitles : [];
 
             if (MovieapiData && MovieapiData.data.subtitles[0].label !== 'OFF') {
                 getSubtitles = MovieapiData.data.subtitles;
-            } else if (VidlinkProData) {
-                getSubtitles = VidlinkProData.data.subtitles;
+            } else if (vidsrcProData) {
+                getSubtitles = vidsrcProData.data.subtitles;
             }
 
             if (vidsrcNetData && getSubtitles.length > 0) {
