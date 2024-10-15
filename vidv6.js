@@ -12,7 +12,7 @@ const config = {
             host: "vidsrcpro.deno.dev",
             movieUrlTemplate: "/movie/{id}",
             tvUrlTemplate: "/tv/{id}/{season}/{episode}",
-            enabled: false
+            enabled: true
         },
         {
             type: "vidsrcme1",
