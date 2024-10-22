@@ -15,6 +15,13 @@ const config = {
             enabled: true
         },
         {
+            type: "whvx.net",
+            host: "whvx.deno.dev",
+            movieUrlTemplate: "/movie/{id}",
+            tvUrlTemplate: "/tv/{id}/{season}/{episode}",
+            enabled: true
+        },
+        {
             type: "vidsrcme1",
             host: "etargcbf.deploy.cx",
             movieUrlTemplate: "/movie/{id}",
@@ -1087,6 +1094,22 @@ function standardizeResponse(source, type, result, currentDomain) {
             data: {
                 source: result.stream,
                 subtitles: result.subtitles,
+                format: "hls"
+            },
+            success: true
+        }];
+    } else if (source === 'whvx.net') {
+        // console.log(result.stream[0].captions)
+        return [{
+            name: "Whvx.net",
+            data: {
+                source: result.stream[0].playlist,
+                // subtitles: result.stream.captions,
+                subtitles: Array.isArray(result.stream[0].captions) ? result.stream[0].captions.map(sub => ({
+                    label: sub.language,
+                    file: sub.url
+                    // file: 'https://quvhfoih.deploy.cx/' + sub.url
+                })) : [],
                 format: "hls"
             },
             success: true
