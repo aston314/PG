@@ -44,10 +44,10 @@ const config = {
         },
         {
             type: "vidlink",
-            host: "fzozzyyh.deploy.cx",
-            movieUrlTemplate: "/vidlink/watch/?isMovie=true&id={id}",
-            tvUrlTemplate: "/vidlink/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
-            enabled: false
+            host: "vidlink.deno.dev",
+            movieUrlTemplate: "/movie/{id}",
+            tvUrlTemplate: "/tv/{id}/{season}/{episode}",
+            enabled: true
         },
         {
             type: "vidsrc.net",
@@ -1403,6 +1403,7 @@ async function handleRequest(request) {
         } else {
             url = `https://rest.opensubtitles.org/search/imdbid-${cleanImdbId}/sublanguageid-${language}`;
         }
+        console.log(url)
 
         try {
             const response = await fetch(url, {
