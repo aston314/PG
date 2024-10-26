@@ -54,14 +54,14 @@ const config = {
             host: "fzozzyyh.deploy.cx",
             movieUrlTemplate: "/vidsrc/watch/?isMovie=true&id={id}",
             tvUrlTemplate: "/vidsrc/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
-            enabled: true
+            enabled: false
         },
         {
             type: "moviesAPI",
             host: "moviesapi.deno.dev",
             movieUrlTemplate: "/moviesapi/watch/?isMovie=true&id={id}",
             tvUrlTemplate: "/moviesapi/watch/?isMovie=false&id={id}&episode={episode}&season={season}",
-            enabled: true
+            enabled: false
         }
     ],
     // NEW_SOURCE_TYPES: [],
@@ -1092,8 +1092,8 @@ function standardizeResponse(source, type, result, currentDomain) {
         return [{
             name: "VidsrcPro",
             data: {
-                source: result.stream,
-                subtitles: result.subtitles,
+                source: result.streamDetails,
+                subtitles: Array.isArray(result.streamDetails.subtitles) ? result.streamDetails.subtitles : [],
                 format: "hls"
             },
             success: true
