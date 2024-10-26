@@ -1092,7 +1092,7 @@ function standardizeResponse(source, type, result, currentDomain) {
         return [{
             name: "VidsrcPro",
             data: {
-                source: result.streamDetails,
+                source: result.streamDetails.source,
                 subtitles: Array.isArray(result.streamDetails.subtitles) ? result.streamDetails.subtitles : [],
                 format: "hls"
             },
