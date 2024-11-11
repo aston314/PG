@@ -19,7 +19,7 @@ const config = {
             host: "whvx.deno.dev",
             movieUrlTemplate: "/movie/{id}",
             tvUrlTemplate: "/tv/{id}/{season}/{episode}",
-            enabled: true
+            enabled: false
         },
         {
             type: "vidsrcme1",
@@ -47,7 +47,7 @@ const config = {
             host: "vidlink.deno.dev",
             movieUrlTemplate: "/movie/{id}",
             tvUrlTemplate: "/tv/{id}/{season}/{episode}",
-            enabled: true
+            enabled: false
         },
         {
             type: "vidsrc.net",
@@ -1088,12 +1088,17 @@ function standardizeResponse(source, type, result, currentDomain) {
             success: true
         }];
     } else if (source === 'vidsrcpro') {
-        // console.log(result)
+        // console.log(result.sources)
         return [{
             name: "VidsrcPro",
             data: {
-                source: result.streamDetails.source,
-                subtitles: Array.isArray(result.streamDetails.subtitles) ? result.streamDetails.subtitles : [],
+                source: result.sources[0].url,
+                // subtitles: Array.isArray(result.subtitles) ? result.subtitles : [],
+                subtitles: Array.isArray(result.subtitles) ? result.subtitles.map((track, index) => ({
+                    file: `${track.url}`,
+                    label: track.lang,
+                })) : [],
+                referer: 'https://embed.su/',
                 format: "hls"
             },
             success: true
