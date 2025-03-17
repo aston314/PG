@@ -100,14 +100,29 @@ async function handleRequest(request: Request): Promise<Response> {
     
     try {
       // 解析请求头
-      const headers: Record<string, string> = headersParam 
-        ? JSON.parse(decodeURIComponent(headersParam)) 
-        : {};
+      // const headers: Record<string, string> = headersParam 
+      //   ? JSON.parse(decodeURIComponent(headersParam)) 
+      //   : {};
+      let headers: Record<string, string> = {};
+
+      if (headersParam) {
+          try {
+              // 转换 key，使其符合 JSON 语法
+              const jsonCompatibleString = headersParam
+                  .replace(/([\w-]+):/g, '"$1":')  // 给 key 加双引号
+                  .replace(/,\s*}/g, "}");         // 修复尾部可能的逗号问题
+      
+              headers = JSON.parse(`{${jsonCompatibleString}}`);
+          } catch (error) {
+              console.error("Failed to parse headersParam:", error);
+              headers = {};
+          }
+      }
+      
       
       // 获取原始M3U8内容
       const response = await fetch(targetUrl, { headers });
-      console.log(targetUrl)
-      console.log(headers)
+      
       
       if (!response.ok) {
         return new Response(`Failed to fetch M3U8: ${response.statusText}`, {
