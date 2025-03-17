@@ -119,7 +119,7 @@ async function handleRequest(request: Request): Promise<Response> {
           }
       }
 
-      console.log(header)
+      console.log(headers)
       
       
       // 获取原始M3U8内容
