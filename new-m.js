@@ -103,7 +103,7 @@ async function handleRequest(request: Request): Promise<Response> {
       // const headers: Record<string, string> = headersParam 
       //   ? JSON.parse(decodeURIComponent(headersParam)) 
       //   : {};
-      let headers: Record<string, string> = {};
+      const headers: Record<string, string> = {};
 
       if (headersParam) {
           try {
